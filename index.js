@@ -28,12 +28,12 @@ app.use(express.json());
 app.use(morgan("combined"));
 
 app.use("/api/auth", authRoute);
-app.use("/api/users", userRoute);
-app.use("/api/books", bookRoute);
-app.use("/api/categories", categoryRoute);
-app.use("/api/carts", cartRoute);
-app.use("/api/orders", orderRoute);
+// app.use("/api/users", userRoute);
+// app.use("/api/books", bookRoute);
+// app.use("/api/categories", categoryRoute);
+// app.use("/api/carts", cartRoute);
+// app.use("/api/orders", orderRoute);
 
 app.listen(8800, () => {
-  console.log("Backend server is running with http://localhost:8800/api!");
+  console.log("Backend server is running with http://localhost:8800/api");
 });

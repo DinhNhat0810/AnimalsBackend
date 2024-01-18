@@ -5,35 +5,40 @@ const jwt = require("jsonwebtoken");
 
 //REGISTER
 router.post("/register", async (req, res) => {
-  const checkUserName = await User.findOne({
-    username: req.body.username,
-  });
+  // const checkUserName = await User.findOne({
+  //   username: req.body.username,
+  // });
 
-  const newUser = new User({
-    userType: req.body.userType,
-    username: req.body.username,
-    password: CryptoJS.AES.encrypt(
-      req.body.password,
-      process.env.SECRET_KEY
-    ).toString(),
-  });
+  // const newUser = new User({
+  //   username: req.body.username,
+  //   password: CryptoJS.AES.encrypt(
+  //     req.body.password,
+  //     process.env.SECRET_KEY
+  //   ).toString(),
+  // });
+
   try {
-    if (!checkUserName) {
-      const user = await newUser.save();
-      const bytes = CryptoJS.AES.decrypt(user.password, process.env.SECRET_KEY);
-      const originalPassword = bytes.toString(CryptoJS.enc.Utf8);
+    return res.status(200).json({
+      message: "This api is not available!",
+      status: "Error",
+    });
 
-      res.status(200).json({
-        payload: { ...user._doc, password: originalPassword },
-        message: "Register successfully!",
-        status: "Success",
-      });
-    } else {
-      return res.status(401).json({
-        message: "Username is exists!",
-        status: "Error",
-      });
-    }
+    // if (!checkUserName) {
+    //   const user = await newUser.save();
+    //   const bytes = CryptoJS.AES.decrypt(user.password, process.env.SECRET_KEY);
+    //   const originalPassword = bytes.toString(CryptoJS.enc.Utf8);
+
+    //   res.status(200).json({
+    //     payload: { ...user._doc, password: originalPassword },
+    //     message: "Register successfully!",
+    //     status: "Success",
+    //   });
+    // } else {
+    //   return res.status(401).json({
+    //     message: "Username is exists!",
+    //     status: "Error",
+    //   });
+    // }
   } catch (err) {
     res.status(500).json(err);
   }

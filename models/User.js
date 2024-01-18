@@ -5,12 +5,12 @@ const UserSchema = new mongoose.Schema(
   {
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    profilePic: { type: String, defaut: "" },
-    isAdmin: { type: Boolean, default: false },
-    userType: { type: String },
-    isBlocked: { type: Boolean, default: false },
-    blockedDate: { type: Date },
-    ordereds: [{ type: mongoose.Schema.Types.ObjectID, ref: "order" }],
+    // profilePic: { type: String, defaut: "" },
+    // isAdmin: { type: Boolean, default: false },
+    // userType: { type: String },
+    // isBlocked: { type: Boolean, default: false },
+    // blockedDate: { type: Date },
+    // ordereds: [{ type: mongoose.Schema.Types.ObjectID, ref: "order" }],
   },
   { timestamps: true }
 );
