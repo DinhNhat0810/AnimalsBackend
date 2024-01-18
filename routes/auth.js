@@ -50,7 +50,7 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({ username: req.body.username });
 
     if (!user) {
-      return res.status(401).json({
+      return res.status(200).json({
         message: "Username is wrong!",
         status: "Error",
       });
@@ -60,7 +60,7 @@ router.post("/login", async (req, res) => {
     const originalPassword = bytes.toString(CryptoJS.enc.Utf8);
 
     if (originalPassword !== req.body.password) {
-      return res.status(401).json({
+      return res.status(200).json({
         message: "Password is wrong!",
         status: "Error",
       });
