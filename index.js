@@ -6,10 +6,8 @@ const dotenv = require("dotenv");
 var cors = require("cors");
 const authRoute = require("./routes/auth");
 const userRoute = require("./routes/users");
-const bookRoute = require("./routes/books");
+const animalRoute = require("./routes/animals");
 const categoryRoute = require("./routes/categories");
-const cartRoute = require("./routes/carts");
-const orderRoute = require("./routes/orders");
 
 dotenv.config();
 app.use(cors());
@@ -29,9 +27,8 @@ app.use(morgan("combined"));
 
 app.use("/api/auth", authRoute);
 // app.use("/api/users", userRoute);
-// app.use("/api/books", bookRoute);
+app.use("/api/animals", animalRoute);
 // app.use("/api/categories", categoryRoute);
-// app.use("/api/carts", cartRoute);
 // app.use("/api/orders", orderRoute);
 
 app.listen(8800, () => {

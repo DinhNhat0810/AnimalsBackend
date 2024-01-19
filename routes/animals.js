@@ -1,21 +1,19 @@
 const router = require("express").Router();
-const Book = require("../models/Book");
+const Animal = require("../models/Animals");
 const User = require("../models/User");
 
 const verify = require("../verifyToken");
 
 // CREATE;
-router.post("/", verify, async (req, res) => {
+router.post("/create", verify, async (req, res) => {
   try {
-    const owner = await User.findOne({ _id: req.user.id });
-
-    if (req.user.isAdmin || owner.userType === "shop") {
-      const newBook = new Book({ ...req.body, initialLimit: req.body?.limit });
-      const savedBook = await newBook.save();
+    if (req.user.isAdmin) {
+      const newAnimal = new Animal({ ...req.body });
+      const savedAnimal = await newAnimal.save();
       res.status(201).json({
         message: "Created successfully!",
         status: "Success",
-        payload: savedBook,
+        payload: savedAnimal,
       });
     } else {
       res.status(403).json("You are not authorized!");
@@ -25,26 +23,26 @@ router.post("/", verify, async (req, res) => {
   }
 });
 
-router.put("/update/:id", async (req, res) => {
-  try {
-    const updatedBook = await Book.findByIdAndUpdate(
-      req.params.id,
-      {
-        $set: { ...req.body },
-      },
-      { new: true }
-    );
+// router.put("/update/:id", async (req, res) => {
+//   try {
+//     const updatedBook = await Book.findByIdAndUpdate(
+//       req.params.id,
+//       {
+//         $set: { ...req.body },
+//       },
+//       { new: true }
+//     );
 
-    res.status(200).json({
-      message: "The book has been updated",
-      status: "Success",
-      payload: updatedBook,
-    });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json(err);
-  }
-});
+//     res.status(200).json({
+//       message: "The book has been updated",
+//       status: "Success",
+//       payload: updatedBook,
+//     });
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json(err);
+//   }
+// });
 
 //UPDATE
 // router.put("/update/:id",verify, async (req, res) => {
@@ -132,48 +130,48 @@ router.put("/update/:id", async (req, res) => {
 // });
 
 //DELETE
-router.delete("/delete/:bookId", verify, async (req, res) => {
-  try {
-    const result = await Book.delete({ _id: req?.params?.bookId });
-    return res.status(200).json({
-      message: "Delete successfully!",
-      status: "Success",
-      payload: result,
-    });
-  } catch (err) {
-    res.status(500).json({
-      message: "Delete failure!",
-      status: "Error",
-    });
-  }
-});
+// router.delete("/delete/:bookId", verify, async (req, res) => {
+//   try {
+//     const result = await Book.delete({ _id: req?.params?.bookId });
+//     return res.status(200).json({
+//       message: "Delete successfully!",
+//       status: "Success",
+//       payload: result,
+//     });
+//   } catch (err) {
+//     res.status(500).json({
+//       message: "Delete failure!",
+//       status: "Error",
+//     });
+//   }
+// });
 
 //Force DELETE
-router.delete("/force-delete", verify, async (req, res) => {
-  console.log(req.body);
-  if (req.user.isAdmin) {
-    try {
-      // const result = await Book.deleteMany({ _id: req.body?.bookIds });
-      // return res.status(200).json({
-      //   message: "Delete successfully!",
-      //   status: "Success",
-      //   payload: result,
-      // });
-    } catch (err) {
-      res.status(500).json({
-        message: "Delete failure!",
-        status: "Error",
-      });
-    }
-  } else {
-    res.status(403).json("You are not allowed!");
-  }
-});
+// router.delete("/force-delete", verify, async (req, res) => {
+//   console.log(req.body);
+//   if (req.user.isAdmin) {
+//     try {
+//       // const result = await Book.deleteMany({ _id: req.body?.bookIds });
+//       // return res.status(200).json({
+//       //   message: "Delete successfully!",
+//       //   status: "Success",
+//       //   payload: result,
+//       // });
+//     } catch (err) {
+//       res.status(500).json({
+//         message: "Delete failure!",
+//         status: "Error",
+//       });
+//     }
+//   } else {
+//     res.status(403).json("You are not allowed!");
+//   }
+// });
 
 //GET BY ID
 router.get("/find/:id", async (req, res) => {
   try {
-    const book = await Book.findById(req.params.id).populate({
+    const book = await Animal.findById(req.params.id).populate({
       path: "publicBy",
       select: "username",
       // populate: { path: "detail", select: "code" },
@@ -231,21 +229,25 @@ router.get("/all", async (req, res) => {
       searchObj = /^(?:\d*\.\d{1,2}|\d+)$/.test(searchKeyword)
         ? {
             $or: [
-              { title: searchKeyword },
-              { desc: searchKeyword },
-              { author: searchKeyword },
+              { nameVi: searchKeyword },
+              { descVi: searchKeyword },
+              { nameEn: searchKeyword },
+              { descEn: searchKeyword },
             ],
           }
         : {
             $or: [
               {
-                title: new RegExp(`${searchKeyword.toString().trim()}`, "i"),
+                nameVi: new RegExp(`${searchKeyword.toString().trim()}`, "i"),
               },
               {
-                desc: new RegExp(`${searchKeyword.toString().trim()}`, "i"),
+                descVi: new RegExp(`${searchKeyword.toString().trim()}`, "i"),
               },
               {
-                author: new RegExp(`${searchKeyword.toString().trim()}`, "i"),
+                nameEn: new RegExp(`${searchKeyword.toString().trim()}`, "i"),
+              },
+              {
+                descEn: new RegExp(`${searchKeyword.toString().trim()}`, "i"),
               },
             ],
           };
@@ -255,18 +257,18 @@ router.get("/all", async (req, res) => {
       page: parseInt(page) || 1,
       limit: parseInt(limit) || 10,
       customLabels: myCustomLabels,
-      populate: {
-        path: "publicBy updatedBy",
-        select: "username",
-      },
+      // populate: {
+      //   path: "publicBy updatedBy",
+      //   select: "username",
+      // },
       sort: { createdAt: -1 },
     };
 
-    const books = await Book.paginate(searchObj, options);
+    const animals = await Animal.paginate(searchObj, options);
 
     res.status(200).json({
       status: "Success",
-      payload: books,
+      payload: animals,
     });
   } catch (err) {
     res.status(500).json(err);

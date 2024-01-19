@@ -5,8 +5,8 @@ const UserSchema = new mongoose.Schema(
   {
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    isAdmin: { type: Boolean, default: false },
     // profilePic: { type: String, defaut: "" },
-    // isAdmin: { type: Boolean, default: false },
     // userType: { type: String },
     // isBlocked: { type: Boolean, default: false },
     // blockedDate: { type: Date },
