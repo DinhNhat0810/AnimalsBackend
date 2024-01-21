@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const { default: mongoose } = require("mongoose");
 const Animal = require("../models/Animals");
 const User = require("../models/User");
 
@@ -8,6 +9,23 @@ const verify = require("../verifyToken");
 router.post("/create", verify, async (req, res) => {
   try {
     if (req.user.isAdmin) {
+      const checkNameVi = await Animal.findOne({ nameVi: req.body.nameVi });
+      const checkNameEn = await Animal.findOne({ nameEn: req.body.nameEn });
+
+      if (checkNameVi) {
+        return res.status(200).json({
+          message: "NameVi already exists",
+          status: "error",
+        });
+      }
+
+      if (checkNameEn) {
+        return res.status(200).json({
+          message: "NameEn already exists",
+          status: "error",
+        });
+      }
+
       const newAnimal = new Animal({ ...req.body });
       const savedAnimal = await newAnimal.save();
       res.status(201).json({
@@ -16,175 +34,197 @@ router.post("/create", verify, async (req, res) => {
         payload: savedAnimal,
       });
     } else {
-      res.status(403).json("You are not authorized!");
+      res.status(403).json({
+        message: "You are not allowed!",
+        status: "Error",
+      });
     }
   } catch (err) {
     res.status(500).json(err);
   }
 });
 
-// router.put("/update/:id", async (req, res) => {
-//   try {
-//     const updatedBook = await Book.findByIdAndUpdate(
-//       req.params.id,
-//       {
-//         $set: { ...req.body },
-//       },
-//       { new: true }
-//     );
-
-//     res.status(200).json({
-//       message: "The book has been updated",
-//       status: "Success",
-//       payload: updatedBook,
-//     });
-//   } catch (err) {
-//     console.log(err);
-//     res.status(500).json(err);
-//   }
-// });
-
 //UPDATE
-// router.put("/update/:id",verify, async (req, res) => {
-//   const owner = await User.findOne({ _id: req.user.id });
-//   const book = await Book.findOne({ _id: req.params.id });
+router.put("/update/:id", verify, async (req, res) => {
+  if (req.user.isAdmin) {
+    try {
+      const checkNameVi = await Animal.findOne({ nameVi: req.body.nameVi });
+      const checkNameEn = await Animal.findOne({ nameEn: req.body.nameEn });
 
-//   if (
-//     req.user.isAdmin ||
-//     (owner.userType === "shop" && owner._id.equals(book?.publicBy))
-//   ) {
-//     try {
-//       const updatedBook = await Book.findByIdAndUpdate(
-//         req.params.id,
-//         {
-//           $set: { ...req.body },
-//         },
-//         { new: true }
-//       );
+      if (checkNameVi && req.params.id !== checkNameVi?._id.toString()) {
+        return res.status(200).json({
+          message: "NameVi already exists",
+          status: "error",
+        });
+      }
 
-//       res.status(200).json({
-//         message: "The book has been updated",
-//         status: "Success",
-//         payload: updatedBook,
-//       });
-//     } catch (err) {
-//       console.log(err);
-//       res.status(500).json(err);
-//     }
-//   } else {
-//     res.status(403).json("You are not allowed!");
-//   }
-// });
+      if (checkNameEn && req.params.id !== checkNameEn?._id.toString()) {
+        return res.status(200).json({
+          message: "NameEn already exists",
+          status: "error",
+        });
+      }
 
-// //DELETE
-// router.put("/delete", verify, async (req, res) => {
-//   if (req.body?.bookIds?.length === 0) {
-//     return res.status(401).json({
-//       message: "Book is not exists!",
-//       status: "Error",
-//     });
-//   }
-//   const owner = await User.findOne({ _id: req.user.id });
-//   const publicBy = req.user.isAdmin ? {} : { publicBy: req.user.id };
-//   const bookOfSeller = await Book.find(publicBy);
-//   const bookDeleted = bookOfSeller.filter((item) => {
-//     if (req.body?.bookIds?.includes(item._id.toString()) && item.isDeleted) {
-//       return item._id.toString();
-//     }
-//   });
-//   if (bookDeleted.length !== 0) {
-//     return res.status(401).json({
-//       message: "One of book is not exists!",
-//       status: "Error",
-//     });
-//   }
-//   const bookOfSellerIds = bookOfSeller.map((item) => item._id.toString());
-//   const isBookOfSeller = req.body?.bookIds?.every((item) => {
-//     return bookOfSellerIds.includes(item);
-//   });
-//   if (req.user.isAdmin || (owner?.userType === "seller" && isBookOfSeller)) {
-//     try {
-//       const result = await Book.updateMany(
-//         { _id: req.body?.bookIds },
-//         {
-//           $set: {
-//             isDeleted: true,
-//             deletedDate: Date.now(),
-//           },
-//         }
-//       );
-//       return res.status(200).json({
-//         message: "Delete successfully!",
-//         status: "Success",
-//         payload: result,
-//       });
-//     } catch (err) {
-//       res.status(500).json({
-//         message: "Delete failure!",
-//         status: "Error",
-//       });
-//     }
-//   } else {
-//     res.status(403).json("You are not allowed!");
-//   }
-// });
+      const updatedAnimal = await Animal.findByIdAndUpdate(
+        req.params.id,
+        {
+          $set: { ...req.body },
+        },
+        { new: true }
+      );
+
+      res.status(200).json({
+        message: "This animal has been updated",
+        status: "Success",
+        payload: updatedAnimal,
+      });
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  } else {
+    res.status(403).json({
+      message: "You are not allowed!",
+      status: "Error",
+    });
+  }
+});
 
 //DELETE
-// router.delete("/delete/:bookId", verify, async (req, res) => {
-//   try {
-//     const result = await Book.delete({ _id: req?.params?.bookId });
-//     return res.status(200).json({
-//       message: "Delete successfully!",
-//       status: "Success",
-//       payload: result,
-//     });
-//   } catch (err) {
-//     res.status(500).json({
-//       message: "Delete failure!",
-//       status: "Error",
-//     });
-//   }
-// });
+router.put("/remove", verify, async (req, res) => {
+  if (req.user.isAdmin) {
+    try {
+      const checkExists = await Animal.findById(req.body?.id);
+      if (!checkExists) {
+        return res.status(200).json({
+          message: "This record is not exists!",
+          status: "error",
+        });
+      }
+
+      await Animal.delete({ _id: req.body?.id });
+
+      return res.status(200).json({
+        message: "Delete successfully!",
+        status: "Success",
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        message: "Delete failure!",
+        status: "Error",
+      });
+    }
+  } else {
+    res.status(403).json({
+      message: "You are not allowed!",
+      status: "Error",
+    });
+  }
+});
+
+//RESTORE
+router.put("/restore", verify, async (req, res) => {
+  if (req.user.isAdmin) {
+    try {
+      const checkExists = await Animal.findOneDeleted({ _id: req.body?.id });
+      if (!checkExists) {
+        return res.status(200).json({
+          message: "This record is not exists!",
+          status: "error",
+        });
+      }
+
+      const result = await Animal.restore({ _id: req.body?.id });
+
+      return res.status(200).json({
+        message: "Restore successfully!",
+        status: "Success",
+        payload: result,
+      });
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({
+        message: "Restore failure!",
+        status: "Error",
+      });
+    }
+  } else {
+    res.status(403).json({
+      message: "You are not allowed!",
+      status: "Error",
+    });
+  }
+});
 
 //Force DELETE
-// router.delete("/force-delete", verify, async (req, res) => {
-//   console.log(req.body);
-//   if (req.user.isAdmin) {
-//     try {
-//       // const result = await Book.deleteMany({ _id: req.body?.bookIds });
-//       // return res.status(200).json({
-//       //   message: "Delete successfully!",
-//       //   status: "Success",
-//       //   payload: result,
-//       // });
-//     } catch (err) {
-//       res.status(500).json({
-//         message: "Delete failure!",
-//         status: "Error",
-//       });
-//     }
-//   } else {
-//     res.status(403).json("You are not allowed!");
-//   }
-// });
+router.delete("/force-delete", verify, async (req, res) => {
+  if (req.user.isAdmin) {
+    try {
+      const result = await Animal.remove({ _id: req.body?.id });
+      return res.status(200).json({
+        message: "Delete successfully!",
+        status: "Success",
+        payload: result,
+      });
+    } catch (err) {
+      res.status(500).json({
+        message: "Delete failure!",
+        status: "Error",
+      });
+    }
+  } else {
+    res.status(403).json({
+      message: "You are not allowed!",
+      status: "Error",
+    });
+  }
+});
 
 //GET BY ID
 router.get("/find/:id", async (req, res) => {
   try {
-    const book = await Animal.findById(req.params.id).populate({
-      path: "publicBy",
-      select: "username",
-      // populate: { path: "detail", select: "code" },
-    });
-
-    if (book?.isDeleted === true) {
+    if (!req.params.id?.match(/^[0-9a-fA-F]{24}$/)) {
       return res.status(401).json({
-        message: "Book is not exists!",
+        message: "This record is not exists!",
+        status: "Failed",
+      });
+    }
+    const animal = await Animal.findOne({ _id: req.params.id });
+
+    console.log(animal);
+
+    if (!animal) {
+      return res.status(401).json({
+        message: "This record is not exists!",
         status: "Failed",
       });
     }
 
-    res.status(200).json(book);
+    res.status(200).json(animal);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+//GET BY ID (include deleted)
+router.get("/findWithDeleted/:id", async (req, res) => {
+  try {
+    if (!req.params.id?.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(401).json({
+        message: "This record is not exists!",
+        status: "Failed",
+      });
+    }
+    const animal = await Animal.findOneWithDeleted({ _id: req.params.id });
+
+    if (!animal) {
+      return res.status(401).json({
+        message: "This record is not exists!",
+        status: "Failed",
+      });
+    }
+
+    res.status(200).json(animal);
   } catch (err) {
     res.status(500).json(err);
   }
