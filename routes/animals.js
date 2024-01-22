@@ -30,7 +30,7 @@ router.post("/create", verify, async (req, res) => {
       const savedAnimal = await newAnimal.save();
       res.status(201).json({
         message: "Created successfully!",
-        status: "Success",
+        status: "success",
         payload: savedAnimal,
       });
     } else {
