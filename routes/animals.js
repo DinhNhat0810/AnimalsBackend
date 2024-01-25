@@ -26,8 +26,15 @@ router.post("/create", verify, async (req, res) => {
         });
       }
 
+      for (var key in req.body) {
+        if (req.body.hasOwnProperty(key)) {
+          req.body[key] = req.body[key]?.trim();
+        }
+      }
+
       const newAnimal = new Animal({ ...req.body });
       const savedAnimal = await newAnimal.save();
+
       res.status(201).json({
         message: "Created successfully!",
         status: "success",
@@ -75,7 +82,7 @@ router.put("/update/:id", verify, async (req, res) => {
 
       res.status(200).json({
         message: "This animal has been updated",
-        status: "Success",
+        status: "success",
         payload: updatedAnimal,
       });
     } catch (err) {
@@ -306,9 +313,22 @@ router.get("/all", async (req, res) => {
 
     const animals = await Animal.paginate(searchObj, options);
 
+    // Tạo một đối tượng mới cho mảng "docs", sao chép tất cả các giá trị từ mảng gốc
+
+    const newPayload = { ...animals };
+
+    newPayload.docs = newPayload.docs.map((doc) => {
+      const newDoc = doc.toObject();
+      return {
+        ...newDoc,
+        createdAt: new Date(newDoc.createdAt).getTime(),
+        updatedAt: new Date(newDoc.updatedAt).getTime(),
+      };
+    });
+
     res.status(200).json({
       status: "Success",
-      payload: animals,
+      payload: newPayload,
     });
   } catch (err) {
     res.status(500).json(err);
