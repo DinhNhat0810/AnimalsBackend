@@ -1,9 +1,14 @@
 const router = require("express").Router();
-const { default: mongoose } = require("mongoose");
+const { default: mongoose, isValidObjectId } = require("mongoose");
 const Animal = require("../models/Animals");
 const User = require("../models/User");
 
 const verify = require("../verifyToken");
+const {
+  isNonEmptyArray,
+  isNonEmptyArrayWithValidObjectId,
+  removeDuplicateElements,
+} = require("../tools/common");
 
 // CREATE;
 router.post("/create", verify, async (req, res) => {
@@ -100,25 +105,33 @@ router.put("/update/:id", verify, async (req, res) => {
 router.put("/remove", verify, async (req, res) => {
   if (req.user.isAdmin) {
     try {
-      const checkExists = await Animal.findById(req.body?.id);
-      if (!checkExists) {
+      if (isNonEmptyArrayWithValidObjectId(req.body?.ids)) {
+        const checkExists = await Animal.find({ _id: { $in: req.body?.ids } });
+
+        if (!isNonEmptyArray(checkExists)) {
+          return res.status(200).json({
+            message: "This record is not exists!",
+            status: "error",
+          });
+        }
+
+        await Animal.delete({ _id: { $in: req.body?.ids } });
+      } else {
         return res.status(200).json({
-          message: "This record is not exists!",
+          message: "Id is empty or id is not valid",
           status: "error",
         });
       }
 
-      await Animal.delete({ _id: req.body?.id });
-
       return res.status(200).json({
         message: "Delete successfully!",
-        status: "Success",
+        status: "success",
       });
     } catch (err) {
       console.log(err);
-      res.status(500).json({
+      res.status(200).json({
         message: "Delete failure!",
-        status: "Error",
+        status: "error",
       });
     }
   } else {
@@ -164,19 +177,38 @@ router.put("/restore", verify, async (req, res) => {
 });
 
 //Force DELETE
-router.delete("/force-delete", verify, async (req, res) => {
+router.put("/force-delete", verify, async (req, res) => {
   if (req.user.isAdmin) {
     try {
-      const result = await Animal.remove({ _id: req.body?.id });
+      if (isNonEmptyArrayWithValidObjectId(req.body?.ids)) {
+        const checkExists = await Animal.findWithDeleted({
+          _id: { $in: req.body?.ids },
+        });
+
+        if (!isNonEmptyArray(checkExists)) {
+          return res.status(200).json({
+            message: "This record is not exists!",
+            status: "error",
+          });
+        }
+
+        await Animal.remove({ _id: { $in: req.body?.ids } });
+      } else {
+        return res.status(200).json({
+          message: "Id is empty or id is not valid",
+          status: "error",
+        });
+      }
+
       return res.status(200).json({
         message: "Delete successfully!",
-        status: "Success",
-        payload: result,
+        status: "success",
       });
     } catch (err) {
-      res.status(500).json({
+      console.log(err);
+      res.status(200).json({
         message: "Delete failure!",
-        status: "Error",
+        status: "error",
       });
     }
   } else {
@@ -307,7 +339,8 @@ router.get("/all", async (req, res) => {
       // populate: {
       //   path: "publicBy updatedBy",
       //   select: "username",
-      // },
+      // pagination: false,
+      // customFind: "findWithDeleted",
       sort: { createdAt: -1 },
     };
 
