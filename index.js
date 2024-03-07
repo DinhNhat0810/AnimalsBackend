@@ -7,7 +7,7 @@ var cors = require("cors");
 const authRoute = require("./routes/auth");
 const userRoute = require("./routes/users");
 const animalRoute = require("./routes/animals");
-const categoryRoute = require("./routes/categories");
+const bannerRoute = require("./routes/banners");
 
 dotenv.config();
 app.use(cors());
@@ -28,8 +28,8 @@ app.use(morgan("combined"));
 app.use("/api/auth", authRoute);
 // app.use("/api/users", userRoute);
 app.use("/api/animals", animalRoute);
+app.use("/api/banners", bannerRoute);
 // app.use("/api/categories", categoryRoute);
-// app.use("/api/orders", orderRoute);
 
 app.listen(8800, () => {
   console.log("Backend server is running with http://localhost:8800/api");
